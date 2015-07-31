@@ -1,0 +1,22 @@
+{
+  "name": "lucos_pubsub",
+  "version": "0.0.1",
+  "description": "Pub Sub library including cross window targetting",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lucas42/lucos_pubsub"
+  },
+  "keywords": [
+    "pubsub"
+  ],
+  "author": "Luke Blaney",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lucas42/lucos_pubsub/issues"
+  },
+  "homepage": "https://github.com/lucas42/lucos_pubsub"
+}
