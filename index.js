@@ -1,15 +1,17 @@
 
 var msgListeners = {}, triggered = {}, msg;
-window.addEventListener('message', function _parsewindowmessage(event) {
-	try {
-		msg = JSON.parse(event.data);
-	} catch (e) {
-		event.preventDefault();
-		return;
-	}
-	if (msg.type) trigger(msg.type, msg, event.source, false);
+if (window) {
+	window.addEventListener('message', function _parsewindowmessage(event) {
+		try {
+			msg = JSON.parse(event.data);
+		} catch (e) {
+			event.preventDefault();
+			return;
+		}
+		if (msg.type) trigger(msg.type, msg, event.source, false);
 
-}, false);
+	}, false);
+}
 
 /**
  * Listen for messages of a given type
