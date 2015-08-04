@@ -1,6 +1,5 @@
-
 var msgListeners = {}, triggered = {}, msg;
-if (window) {
+if (typeof window !== 'undefined') {
 	window.addEventListener('message', function _parsewindowmessage(event) {
 		try {
 			msg = JSON.parse(event.data);
@@ -11,6 +10,8 @@ if (window) {
 		if (msg.type) trigger(msg.type, msg, event.source, false);
 
 	}, false);
+} else {
+	var window = null;
 }
 
 /**
@@ -77,3 +78,4 @@ exports = {
 	waitFor: waitFor,
 	listenExisting: listenExisting
 }
+module.exports = exports;
