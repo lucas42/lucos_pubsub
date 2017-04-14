@@ -1,17 +1,25 @@
-var msgListeners = {}, triggered = {}, msg;
-if (typeof window !== 'undefined') {
-	window.addEventListener('message', function _parsewindowmessage(event) {
-		try {
-			msg = JSON.parse(event.data);
-		} catch (e) {
-			event.preventDefault();
-			return;
-		}
-		if (msg.type) trigger(msg.type, msg, event.source, false);
-
-	}, false);
+var msgListeners = {}, triggered = {}, msg, current;
+if (typeof self !== 'undefined' && self.addEventListener) {
+	self.addEventListener('message', parseRemoteMessage, false);
+	current = self;
 } else {
-	var window = null;
+	current = null;
+}
+if (typeof navigator !== 'undefined' && navigator.serviceWorker) {
+	navigator.serviceWorker.addEventListener('message', parseRemoteMessage, false);
+}
+
+/**
+ * Handle messages which came from a different window or worker
+ */
+function parseRemoteMessage(event) {
+	try {
+		msg = JSON.parse(event.data);
+	} catch (e) {
+		event.preventDefault();
+		return;
+	}
+	if (msg.type) trigger(msg.type, msg, event.source, false);
 }
 
 /**
@@ -40,7 +48,7 @@ function unlisten(type, callback) {
 function listenExisting(type, callback) {
 	listen(type, callback, true);
 	if (triggered.hasOwnProperty(type)) {
-		callback(triggered[type], window);
+		callback(triggered[type], current);
 	}
 
 }
@@ -54,7 +62,7 @@ function listenExisting(type, callback) {
 function waitFor(type, callback) {
 	function callbackwrapper(msg) {
 		unlisten(type, callbackwrapper, true);
-		callback(msg, window);
+		callback(msg, current);
 	}
 	listenExisting(type, callbackwrapper, true);
 }
@@ -66,16 +74,30 @@ function trigger(type, msg, source, internal) {
 	}
 }
 function send(type, msg, target) {
-	if (!target || target == window) return trigger(type, msg, window, true);
+	if (!target || target == current) return trigger(type, msg, current, true);
 	if (!msg) msg = {};
 	msg.type = type;
-	target.postMessage(JSON.stringify(msg), '*');
+	var encodedMessage = JSON.stringify(msg);
+	if (typeof Window === "function" && target instanceof Window) {
+		target.postMessage(encodedMessage, '*');
+	} else {
+		target.postMessage(encodedMessage);
+	}
+}
+function clientBroadcast(type, msg) {
+	if (typeof self === 'undefined' || !self.clients || !self.clients.matchAll) return;
+	self.clients.matchAll().then(function(clients) {
+		clients.forEach(function (client) {
+			send(type, msg, client);
+		});
+	});
 }
 exports = {
 	send: send,
 	listen: listen,
 	unlisten: unlisten,
 	waitFor: waitFor,
-	listenExisting: listenExisting
+	listenExisting: listenExisting,
+	clientBroadcast: clientBroadcast,
 }
 module.exports = exports;
