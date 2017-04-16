@@ -84,11 +84,16 @@ function send(type, msg, target) {
 		target.postMessage(encodedMessage);
 	}
 }
+var filterBroadcastFunction = (function defaultBroadcastFilter () { return true; });
+function filterBroadcasts(filterFunction) {
+	if (typeof filterFunction !== 'function') throw "filterFunction must be a function";
+	filterBroadcastFunction = filterFunction;
+}
 function clientBroadcast(type, msg) {
 	if (typeof self === 'undefined' || !self.clients || !self.clients.matchAll) return;
 	self.clients.matchAll().then(function(clients) {
 		clients.forEach(function (client) {
-			send(type, msg, client);
+			if (filterBroadcastFunction(type, msg, client)) send(type, msg, client);
 		});
 	});
 }
@@ -99,5 +104,6 @@ exports = {
 	waitFor: waitFor,
 	listenExisting: listenExisting,
 	clientBroadcast: clientBroadcast,
+	filterBroadcasts: filterBroadcasts,
 }
 module.exports = exports;
