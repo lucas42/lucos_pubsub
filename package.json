@@ -1,6 +1,6 @@
 {
   "name": "lucos_pubsub",
-  "version": "0.0.4",
+  "version": "1.0.0",
   "description": "Pub Sub library including cross window & worker targetting",
   "main": "index.js",
   "scripts": {
@@ -14,7 +14,6 @@
     "pubsub"
   ],
   "author": "Luke Blaney",
-  "license": "ISC",
   "bugs": {
     "url": "https://github.com/lucas42/lucos_pubsub/issues"
   },

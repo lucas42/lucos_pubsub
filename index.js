@@ -1,25 +1,18 @@
-var msgListeners = {}, triggered = {}, msg, current;
-if (typeof self !== 'undefined' && self.addEventListener) {
-	self.addEventListener('message', parseRemoteMessage, false);
-	current = self;
-} else {
-	current = null;
-}
-if (typeof navigator !== 'undefined' && navigator.serviceWorker) {
-	navigator.serviceWorker.addEventListener('message', parseRemoteMessage, false);
-}
 
-/**
- * Handle messages which came from a different window or worker
- */
-function parseRemoteMessage(event) {
-	try {
-		msg = JSON.parse(event.data);
-	} catch (e) {
-		event.preventDefault();
-		return;
-	}
-	if (msg.type) trigger(msg.type, msg, event.source, false);
+var msgListeners = {}, triggered = {}, msg;
+if(typeof window !== 'undefined') {
+	window.addEventListener('message', function _parsewindowmessage(event) {
+		try {
+			msg = JSON.parse(event.data);
+		} catch (e) {
+			event.preventDefault();
+			return;
+		}
+		if (msg.type) trigger(msg.type, msg, event.source, false);
+
+	}, false);
+} else {
+	window = "GLOBAL"; // Quite hacky.  Think of a better way to work in environments without a `window` global variable
 }
 
 /**
@@ -48,7 +41,7 @@ function unlisten(type, callback) {
 function listenExisting(type, callback) {
 	listen(type, callback, true);
 	if (triggered.hasOwnProperty(type)) {
-		callback(triggered[type], current);
+		callback(triggered[type], window);
 	}
 
 }
@@ -62,7 +55,7 @@ function listenExisting(type, callback) {
 function waitFor(type, callback) {
 	function callbackwrapper(msg) {
 		unlisten(type, callbackwrapper, true);
-		callback(msg, current);
+		callback(msg, window);
 	}
 	listenExisting(type, callbackwrapper, true);
 }
@@ -70,40 +63,25 @@ function waitFor(type, callback) {
 function trigger(type, msg, source, internal) {
 	if (internal) triggered[type] = msg;
 	if (msgListeners[type]) for (var ii in msgListeners[type]) {
-		if (internal || msgListeners[type][ii].ext) msgListeners[type][ii].callback(msg, source);
+		if (internal || msgListeners[type][ii].ext) {
+			try {
+				msgListeners[type][ii].callback(msg, source);
+			} catch (error) {
+				console.error(`Error when triggering pubsub message "${type}"\n`, error);
+			}
+		}
 	}
 }
 function send(type, msg, target) {
-	if (!target || target == current) return trigger(type, msg, current, true);
+	if (!target || target == window) return trigger(type, msg, window, true);
 	if (!msg) msg = {};
 	msg.type = type;
-	var encodedMessage = JSON.stringify(msg);
-	if (typeof Window === "function" && target instanceof Window) {
-		target.postMessage(encodedMessage, '*');
-	} else {
-		target.postMessage(encodedMessage);
-	}
+	target.postMessage(JSON.stringify(msg), '*');
 }
-var filterBroadcastFunction = (function defaultBroadcastFilter () { return true; });
-function filterBroadcasts(filterFunction) {
-	if (typeof filterFunction !== 'function') throw "filterFunction must be a function";
-	filterBroadcastFunction = filterFunction;
+export {
+	send,
+	listen,
+	unlisten,
+	waitFor,
+	listenExisting,
 }
-function clientBroadcast(type, msg) {
-	if (typeof self === 'undefined' || !self.clients || !self.clients.matchAll) return;
-	self.clients.matchAll().then(function(clients) {
-		clients.forEach(function (client) {
-			if (filterBroadcastFunction(type, msg, client)) send(type, msg, client);
-		});
-	});
-}
-exports = {
-	send: send,
-	listen: listen,
-	unlisten: unlisten,
-	waitFor: waitFor,
-	listenExisting: listenExisting,
-	clientBroadcast: clientBroadcast,
-	filterBroadcasts: filterBroadcasts,
-}
-module.exports = exports;
