@@ -12,7 +12,7 @@ if(typeof window !== 'undefined') {
 
 	}, false);
 } else {
-	window = "GLOBAL"; // Quite hacky.  Think of a better way to work in environments without a `window` global variable
+	var window = "GLOBAL"; // Quite hacky.  Think of a better way to work in environments without a `window` global variable
 }
 
 /**
