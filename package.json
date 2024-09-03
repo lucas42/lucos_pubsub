@@ -1,7 +1,8 @@
 {
   "name": "lucos_pubsub",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Pub Sub library including cross window & worker targetting",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
