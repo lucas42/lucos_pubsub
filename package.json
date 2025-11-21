@@ -1,6 +1,6 @@
 {
   "name": "lucos_pubsub",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Pub Sub library including cross window & worker targetting",
   "type": "module",
   "main": "index.js",
