@@ -15,10 +15,15 @@ if(typeof window !== 'undefined') {
 	var window = "GLOBAL"; // Quite hacky.  Think of a better way to work in environments without a `window` global variable
 }
 
+function isSafeType(type) {
+	return type !== '__proto__' && type !== 'constructor' && type !== 'prototype';
+}
+
 /**
  * Listen for messages of a given type
  */
 function listen(type, callback, internalonly) {
+	if (!isSafeType(type)) return;
 	if (!msgListeners[type]) msgListeners[type] = [];
 	msgListeners[type].push({
 		callback: callback,
@@ -61,6 +66,7 @@ function waitFor(type, callback) {
 }
 
 function trigger(type, msg, source, internal) {
+	if (!isSafeType(type)) return;
 	if (internal) triggered[type] = msg;
 	if (msgListeners[type]) for (var ii in msgListeners[type]) {
 		if (internal || msgListeners[type][ii].ext) {
