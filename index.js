@@ -31,6 +31,7 @@ function listen(type, callback, internalonly) {
 	});
 }
 function unlisten(type, callback) {
+	if (!isSafeType(type)) return false;
 	if (msgListeners[type]) for (var ii in msgListeners[type]) {
 		if (msgListeners[type][ii].callback == callback) return delete msgListeners[type][ii];
 	}
